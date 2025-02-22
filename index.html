@@ -23,12 +23,8 @@
 <body>
     <div class="container text-center weather-container">
         <h1>Weather App</h1>
-        <div class="mb-3">
-            <input type="text" id="city-input" class="form-control" placeholder="Enter city name" />
-            <button class="btn btn-primary mt-2" onclick="getWeather()">Get Weather</button>
-        </div>
         <div id="weather-info">
-            <h2 id="city-name">Loading...</h2>
+            <h2 id="city-name">Cookeville, TN</h2>
             <div id="current-weather">
                 <p id="temperature"></p>
                 <p id="humidity"></p>
@@ -43,53 +39,34 @@
     </div>
 
     <script>
+        const latitude = 36.1628; // Cookeville's latitude
+        const longitude = -85.5016; // Cookeville's longitude
         const weatherBaseUrl = "https://api.open-meteo.com/v1/forecast";
 
-        // Function to fetch weather details based on city input
-        function getWeather() {
-            const city = document.getElementById("city-input").value;
-            if (city) {
-                const geoUrl = `https://geocode.maps.co/search?q=${city}&format=json`; // Updated geocode endpoint
-                fetch(geoUrl)
-                    .then(response => response.json())
-                    .then(data => {
-                        console.log(data);  // Log the geocode response
-                        if (data && data.length > 0) {
-                            const latitude = data[0].lat;
-                            const longitude = data[0].lon;
-                            fetchWeatherData(latitude, longitude, city);
-                        } else {
-                            alert("City not found. Please try again.");
-                        }
-                    })
-                    .catch(error => alert("Error fetching location data."));
-            } else {
-                alert("Please enter a city name.");
-            }
-        }
-
-        // Fetch weather data for the given coordinates
-        function fetchWeatherData(latitude, longitude, city) {
+        // Function to fetch weather data for Cookeville
+        function fetchWeatherData(latitude, longitude) {
             const url = `${weatherBaseUrl}?latitude=${latitude}&longitude=${longitude}&current_weather=true&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max&timezone=America%2FChicago`;
 
             fetch(url)
                 .then(response => response.json())
                 .then(data => {
-                    displayWeather(data, city);
+                    displayWeather(data);
                 })
-                .catch(error => alert("Error fetching weather data."));
+                .catch(error => {
+                    console.error("Error fetching weather data:", error);
+                    alert("Error fetching weather data.");
+                });
         }
 
         // Display weather data on the page
-        function displayWeather(data, city) {
+        function displayWeather(data) {
             const currentWeather = data.current_weather;
             const forecast = data.daily;
 
-            document.getElementById("city-name").textContent = `${city}`;
             document.getElementById("temperature").textContent = `Current Temperature: ${currentWeather.temperature_2m}°F`;
             document.getElementById("humidity").textContent = `Humidity: ${currentWeather.humidity_2m}%`;
             document.getElementById("condition").textContent = `Conditions: ${currentWeather.weather_code}`;
-            document.getElementById("weather-icon").innerHTML = `<i class="bi bi-cloud-sun" style="font-size: 50px;"></i>`; // You can use dynamic icons here
+            document.getElementById("weather-icon").innerHTML = `<i class="bi bi-cloud-sun" style="font-size: 50px;"></i>`; // Static icon (You can make this dynamic later)
 
             let forecastHtml = "";
             forecast.forEach((day, index) => {
@@ -109,6 +86,9 @@
 
             document.getElementById("forecast-details").innerHTML = forecastHtml;
         }
+
+        // Call the function to fetch weather data for Cookeville
+        fetchWeatherData(latitude, longitude);
     </script>
 </body>
 </html>
