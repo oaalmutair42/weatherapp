@@ -2,142 +2,113 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black">
     <title>Weather App</title>
-    <link rel="icon" type="image/x-icon" href="/images/favicon.ico">
-    <link rel="apple-touch-icon" href="images/apple-touch-icon-iphone-60x60.png">
-    <link rel="apple-touch-icon" sizes="60x60" href="images/apple-touch-icon-ipad-76x76.png">
-    <link rel="apple-touch-icon" sizes="114x114" href="images/apple-touch-icon-iphone-retina-120x120.png">
-    <link rel="apple-touch-icon" sizes="144x144" href="images/apple-touch-icon-ipad-retina-152x152.png">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+    <link rel="manifest" href="manifest.json">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css">
     <style>
         body {
-            background-color: #f0f8ff;
+            background-color: #f0f0f0;
             font-family: Arial, sans-serif;
         }
-        .container {
+        .weather-container {
             margin-top: 50px;
         }
-        .weather-card {
-            background-color: #ffffff;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        }
         .forecast-day {
-            display: inline-block;
-            width: 13%;
-            text-align: center;
-            margin: 10px;
-        }
-        .forecast-day img {
-            width: 50px;
-            height: 50px;
-        }
-        .forecast-day p {
-            margin: 5px 0;
-        }
-        input[type="text"] {
-            margin-bottom: 20px;
+            margin-top: 20px;
         }
     </style>
-
-    <!-- Manifest file (PWA) -->
-    <link rel="manifest" href="data:application/json, {
-        'name': 'Weather App',
-        'short_name': 'Weather',
-        'start_url': './',
-        'display': 'standalone',
-        'background_color': '#ffffff',
-        'description': 'Weather App',
-        'icons': [
-            {'src': 'images/favicon.ico', 'sizes': '192x192', 'type': 'image/x-icon'},
-            {'src': 'images/apple-touch-icon-iphone-60x60.png', 'sizes': '60x60', 'type': 'image/png'}
-        ]
-    }">
 </head>
 <body>
-    <div class="container">
-        <div class="row">
-            <div class="col-12 text-center weather-card">
-                <h2 id="city-name">Enter City</h2>
-                <h5 id="current-time">Loading...</h5>
-                <p id="current-weather">Loading...</p>
-                <p>Temperature: <span id="current-temp">Loading...</span>&#8457;</p>
-                <p>Humidity: <span id="current-humidity">Loading...</span>%</p>
-                <input type="text" id="city-input" placeholder="Enter City Name" class="form-control" oninput="fetchWeatherData()">
-                <h4>7-Day Forecast</h4>
-                <div id="forecast"></div>
+    <div class="container text-center weather-container">
+        <h1>Weather App</h1>
+        <div class="mb-3">
+            <input type="text" id="city-input" class="form-control" placeholder="Enter city name" />
+            <button class="btn btn-primary mt-2" onclick="getWeather()">Get Weather</button>
+        </div>
+        <div id="weather-info">
+            <h2 id="city-name">Loading...</h2>
+            <div id="current-weather">
+                <p id="temperature"></p>
+                <p id="humidity"></p>
+                <p id="condition"></p>
+                <div id="weather-icon"></div>
+            </div>
+            <div id="forecast" class="forecast-day">
+                <h3>7-Day Forecast</h3>
+                <div id="forecast-details"></div>
             </div>
         </div>
     </div>
 
     <script>
-        // Function to fetch weather data
-        async function fetchWeatherData() {
-            const city = document.getElementById('city-input').value;
-            if (!city) return;
+        const apiKey = "https://api.open-meteo.com/v1/forecast?latitude=36.1628&longitude=-85.5016&hourly=temperature_2m&daily=weather_code&temperature_unit=fahrenheit&wind_speed_unit=ms&precipitation_unit=inch&timezone=auto"; // Replace with your Open Meteo API key
+        const weatherBaseUrl = "https://api.open-meteo.com/v1/forecast";
 
-            const apiUrl = `https://api.open-meteo.com/v1/forecast?latitude=36.1682&longitude=-85.5016&current=temperature_2m,relative_humidity_2m&hourly=temperature_2m,relative_humidity_2m&daily=temperature_2m_max,temperature_2m_min&temperature_unit=fahrenheit&timezone=America%2FChicago`;
-
-            try {
-                const response = await fetch(apiUrl);
-                const data = await response.json();
-
-                // City Name and Weather Data
-                const cityName = city;
-                const currentWeather = data.current_weather;
-                const currentTime = new Date().toLocaleString();
-                const forecast = data.daily;
-
-                // Display City Name and Time
-                document.getElementById('city-name').textContent = cityName;
-                document.getElementById('current-time').textContent = `Time: ${currentTime}`;
-                document.getElementById('current-weather').textContent = currentWeather.weathercode;
-                document.getElementById('current-temp').textContent = currentWeather.temperature;
-                document.getElementById('current-humidity').textContent = currentWeather.humidity;
-
-                // Display 7-Day Forecast
-                let forecastHTML = '';
-                forecast.forEach((day, index) => {
-                    if (index < 7) {
-                        forecastHTML += `
-                            <div class="forecast-day">
-                                <img src="https://open-meteo.com/icons/${day.weathercode}.png" alt="weather-icon">
-                                <p>${new Date(day.time).toLocaleDateString()}</p>
-                                <p>Max Temp: ${day.temperature_2m_max}&#8457;</p>
-                                <p>Min Temp: ${day.temperature_2m_min}&#8457;</p>
-                            </div>
-                        `;
-                    }
-                });
-                document.getElementById('forecast').innerHTML = forecastHTML;
-            } catch (error) {
-                console.error('Error fetching the weather data:', error);
-                document.getElementById('city-name').textContent = 'Error fetching data';
+        // Function to fetch weather details based on city input
+        function getWeather() {
+            const city = document.getElementById("city-input").value;
+            if (city) {
+                const geoUrl = `https://api.open-meteo.com/v1/geocode?search=${city}&language=en`;
+                fetch(geoUrl)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.results && data.results.length > 0) {
+                            const latitude = data.results[0].latitude;
+                            const longitude = data.results[0].longitude;
+                            fetchWeatherData(latitude, longitude, city);
+                        } else {
+                            alert("City not found. Please try again.");
+                        }
+                    })
+                    .catch(error => alert("Error fetching location data."));
+            } else {
+                alert("Please enter a city name.");
             }
         }
 
-        // Initial call to fetchWeatherData
-        fetchWeatherData();
-    </script>
+        // Fetch weather data for the given coordinates
+        function fetchWeatherData(latitude, longitude, city) {
+            const url = `${weatherBaseUrl}?latitude=${latitude}&longitude=${longitude}&current_weather=true&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max&timezone=America%2FChicago`;
 
-    <!-- Service Worker JS -->
-    <script>
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('/service-worker.js')
-                .then(function(registration) {
-                    console.log('Service Worker registered with scope:', registration.scope);
-                }).catch(function(error) {
-                    console.log('Service Worker registration failed:', error);
-                });
+            fetch(url)
+                .then(response => response.json())
+                .then(data => {
+                    displayWeather(data, city);
+                })
+                .catch(error => alert("Error fetching weather data."));
+        }
+
+        // Display weather data on the page
+        function displayWeather(data, city) {
+            const currentWeather = data.current_weather;
+            const forecast = data.daily;
+
+            document.getElementById("city-name").textContent = `${city}`;
+            document.getElementById("temperature").textContent = `Current Temperature: ${currentWeather.temperature_2m}°F`;
+            document.getElementById("humidity").textContent = `Humidity: ${currentWeather.humidity_2m}%`;
+            document.getElementById("condition").textContent = `Conditions: ${currentWeather.weather_code}`;
+            document.getElementById("weather-icon").innerHTML = `<i class="bi bi-cloud-sun" style="font-size: 50px;"></i>`; // You can use dynamic icons here
+
+            let forecastHtml = "";
+            forecast.forEach((day, index) => {
+                if (index < 7) { // Display only the next 7 days
+                    forecastHtml += `
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="card-title">Day ${index + 1}</h5>
+                                <p class="card-text">Max Temp: ${day.temperature_2m_max}°F</p>
+                                <p class="card-text">Min Temp: ${day.temperature_2m_min}°F</p>
+                                <p class="card-text">Precipitation Chance: ${day.precipitation_probability_max}%</p>
+                            </div>
+                        </div>
+                    `;
+                }
+            });
+
+            document.getElementById("forecast-details").innerHTML = forecastHtml;
         }
     </script>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-pzjw8f+ua7Kw1TIq0Gf0xP5In+UjR2H1m1xh5qlSaTrjzRnxs2m+kkogkVleB73u" crossorigin="anonymous"></script>
 </body>
 </html>
