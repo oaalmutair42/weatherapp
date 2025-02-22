@@ -1,99 +1,143 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black">
-    <meta name="apple-mobile-web-app-title" content="Weather App">
-    
     <title>Weather App</title>
-
-    <!-- Favicon & Apple Touch Icons -->
-    <link rel="icon" type="image/png" href="icon.png">
-    <link rel="apple-touch-icon" sizes="180x180" href="icon.png">
-
-    <!-- Bootstrap and Icons -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css">
-
+    <link rel="icon" type="image/x-icon" href="/images/favicon.ico">
+    <link rel="apple-touch-icon" href="images/apple-touch-icon-iphone-60x60.png">
+    <link rel="apple-touch-icon" sizes="60x60" href="images/apple-touch-icon-ipad-76x76.png">
+    <link rel="apple-touch-icon" sizes="114x114" href="images/apple-touch-icon-iphone-retina-120x120.png">
+    <link rel="apple-touch-icon" sizes="144x144" href="images/apple-touch-icon-ipad-retina-152x152.png">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
     <style>
         body {
+            background-color: #f0f8ff;
             font-family: Arial, sans-serif;
-            background-color: #f8f9fa;
-            padding: 20px;
         }
-
-        #weather-info {
+        .container {
+            margin-top: 50px;
+        }
+        .weather-card {
             background-color: #ffffff;
-            border-radius: 8px;
             padding: 20px;
+            border-radius: 10px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
         }
-
-        .icon {
-            font-size: 50px;
-            margin-bottom: 15px;
+        .forecast-day {
+            display: inline-block;
+            width: 13%;
+            text-align: center;
+            margin: 10px;
         }
-
-        @media (max-width: 576px) {
-            #weather-info {
-                padding: 15px;
-            }
+        .forecast-day img {
+            width: 50px;
+            height: 50px;
+        }
+        .forecast-day p {
+            margin: 5px 0;
+        }
+        input[type="text"] {
+            margin-bottom: 20px;
         }
     </style>
 
-    <!-- PWA Manifest -->
-    <link rel="manifest" href="manifest.json">
+    <!-- Manifest file (PWA) -->
+    <link rel="manifest" href="data:application/json, {
+        'name': 'Weather App',
+        'short_name': 'Weather',
+        'start_url': './',
+        'display': 'standalone',
+        'background_color': '#ffffff',
+        'description': 'Weather App',
+        'icons': [
+            {'src': 'images/favicon.ico', 'sizes': '192x192', 'type': 'image/x-icon'},
+            {'src': 'images/apple-touch-icon-iphone-60x60.png', 'sizes': '60x60', 'type': 'image/png'}
+        ]
+    }">
 </head>
-
 <body>
-    <div class="container text-center">
-        <h1 id="city-name">Weather in Your City</h1>
-        <div id="weather-info">
-            <div id="weather-icon" class="icon"></div>
-            <p>Temperature: <span id="temperature">-</span>°F</p>
-            <p>Humidity: <span id="humidity">-</span>%</p>
-            <p>Condition: <span id="condition">-</span></p>
+    <div class="container">
+        <div class="row">
+            <div class="col-12 text-center weather-card">
+                <h2 id="city-name">Enter City</h2>
+                <h5 id="current-time">Loading...</h5>
+                <p id="current-weather">Loading...</p>
+                <p>Temperature: <span id="current-temp">Loading...</span>&#8457;</p>
+                <p>Humidity: <span id="current-humidity">Loading...</span>%</p>
+                <input type="text" id="city-input" placeholder="Enter City Name" class="form-control" oninput="fetchWeatherData()">
+                <h4>7-Day Forecast</h4>
+                <div id="forecast"></div>
+            </div>
         </div>
-        <p class="mt-3">
-            <small>Data courtesy of <a href="https://open-meteo.com/en/docs" target="_blank">Open-Meteo</a></small>
-        </p>
     </div>
 
     <script>
-        document.addEventListener("DOMContentLoaded", fetchWeather);
+        // Function to fetch weather data
+        async function fetchWeatherData() {
+            const city = document.getElementById('city-input').value;
+            if (!city) return;
 
-        function fetchWeather() {
-            const apiURL = "https://api.open-meteo.com/v1/forecast?latitude=36.1682&longitude=-85.5016&current=temperature_2m,relative_humidity_2m&timezone=America%2FChicago";
+            const apiUrl = `https://api.open-meteo.com/v1/forecast?latitude=36.1682&longitude=-85.5016&current=temperature_2m,relative_humidity_2m&hourly=temperature_2m,relative_humidity_2m&daily=temperature_2m_max,temperature_2m_min&temperature_unit=fahrenheit&timezone=America%2FChicago`;
 
-            fetch(apiURL)
-                .then(response => response.json())
-                .then(data => {
-                    const temperature = data.current.temperature_2m;
-                    const humidity = data.current.relative_humidity_2m;
-                    const condition = "Clear";  // Example condition
-                    const iconClass = "bi-sun"; // Example icon
+            try {
+                const response = await fetch(apiUrl);
+                const data = await response.json();
 
-                    document.getElementById("temperature").textContent = temperature;
-                    document.getElementById("humidity").textContent = humidity;
-                    document.getElementById("condition").textContent = condition;
-                    document.getElementById("weather-icon").className = `bi ${iconClass}`;
-                })
-                .catch(error => console.error("Error fetching weather data:", error));
+                // City Name and Weather Data
+                const cityName = city;
+                const currentWeather = data.current_weather;
+                const currentTime = new Date().toLocaleString();
+                const forecast = data.daily;
+
+                // Display City Name and Time
+                document.getElementById('city-name').textContent = cityName;
+                document.getElementById('current-time').textContent = `Time: ${currentTime}`;
+                document.getElementById('current-weather').textContent = currentWeather.weathercode;
+                document.getElementById('current-temp').textContent = currentWeather.temperature;
+                document.getElementById('current-humidity').textContent = currentWeather.humidity;
+
+                // Display 7-Day Forecast
+                let forecastHTML = '';
+                forecast.forEach((day, index) => {
+                    if (index < 7) {
+                        forecastHTML += `
+                            <div class="forecast-day">
+                                <img src="https://open-meteo.com/icons/${day.weathercode}.png" alt="weather-icon">
+                                <p>${new Date(day.time).toLocaleDateString()}</p>
+                                <p>Max Temp: ${day.temperature_2m_max}&#8457;</p>
+                                <p>Min Temp: ${day.temperature_2m_min}&#8457;</p>
+                            </div>
+                        `;
+                    }
+                });
+                document.getElementById('forecast').innerHTML = forecastHTML;
+            } catch (error) {
+                console.error('Error fetching the weather data:', error);
+                document.getElementById('city-name').textContent = 'Error fetching data';
+            }
         }
 
-        // Register Service Worker for PWA support
+        // Initial call to fetchWeatherData
+        fetchWeatherData();
+    </script>
+
+    <!-- Service Worker JS -->
+    <script>
         if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('service-worker.js')
-                .then(registration => console.log("Service Worker registered:", registration))
-                .catch(error => console.log("Service Worker registration failed:", error));
+            navigator.serviceWorker.register('/service-worker.js')
+                .then(function(registration) {
+                    console.log('Service Worker registered with scope:', registration.scope);
+                }).catch(function(error) {
+                    console.log('Service Worker registration failed:', error);
+                });
         }
     </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-pzjw8f+ua7Kw1TIq0Gf0xP5In+UjR2H1m1xh5qlSaTrjzRnxs2m+kkogkVleB73u" crossorigin="anonymous"></script>
 </body>
-
 </html>
-
