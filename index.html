@@ -45,17 +45,22 @@
 
         // Function to fetch weather data for Cookeville
         function fetchWeatherData(latitude, longitude) {
-            const url = `${weatherBaseUrl}?latitude=${latitude}&longitude=${longitude}&current_weather=true&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max&timezone=America%2FChicago`;
+    const url = `${weatherBaseUrl}?latitude=${latitude}&longitude=${longitude}&current_weather=true&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max&timezone=America%2FChicago`;
 
-            fetch(url)
-                .then(response => response.json())
-                .then(data => {
-                    displayWeather(data);
-                })
-                .catch(error => {
-                    console.error("Error fetching weather data:", error);
-                    alert("Error fetching weather data.");
-                });
+    fetch(url)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(data => {
+            displayWeather(data);
+        })
+        .catch(error => {
+            console.error("Error fetching weather data:", error);
+            alert("Error fetching weather data: " + error.message);
+        });
         }
 
         // Display weather data on the page
