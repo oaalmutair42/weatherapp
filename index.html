@@ -43,20 +43,20 @@
     </div>
 
     <script>
-        const apiKey = "https://api.open-meteo.com/v1/forecast?latitude=36.1628&longitude=-85.5016&hourly=temperature_2m&daily=weather_code&temperature_unit=fahrenheit&wind_speed_unit=ms&precipitation_unit=inch&timezone=auto"; // Replace with your Open Meteo API key
         const weatherBaseUrl = "https://api.open-meteo.com/v1/forecast";
 
         // Function to fetch weather details based on city input
         function getWeather() {
             const city = document.getElementById("city-input").value;
             if (city) {
-                const geoUrl = `https://api.open-meteo.com/v1/geocode?search=${city}&language=en`;
+                const geoUrl = `https://geocode.maps.co/search?q=${city}&format=json`; // Updated geocode endpoint
                 fetch(geoUrl)
                     .then(response => response.json())
                     .then(data => {
-                        if (data.results && data.results.length > 0) {
-                            const latitude = data.results[0].latitude;
-                            const longitude = data.results[0].longitude;
+                        console.log(data);  // Log the geocode response
+                        if (data && data.length > 0) {
+                            const latitude = data[0].lat;
+                            const longitude = data[0].lon;
                             fetchWeatherData(latitude, longitude, city);
                         } else {
                             alert("City not found. Please try again.");
