@@ -2,37 +2,80 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
     <title>Weather App</title>
-    <link rel="manifest" href="manifest.json">
+    <!-- Favicon and Apple Touch Icons -->
+    <link rel="icon" type="image/x-icon" href="/images/favicon.ico">
+    <link rel="apple-touch-icon" href="images/apple-touch-icon-iphone-60x60.png">
+    <link rel="apple-touch-icon" sizes="60x60" href="images/apple-touch-icon-ipad-76x76.png">
+    <link rel="apple-touch-icon" sizes="114x114" href="images/apple-touch-icon-iphone-retina-120x120.png">
+    <link rel="apple-touch-icon" sizes="144x144" href="images/apple-touch-icon-ipad-retina-152x152.png">
+    <!-- Bootstrap CSS and Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css">
+    <!-- Web App Manifest -->
+    <link rel="manifest" href="manifest.json">
     <style>
         body {
-            background-color: #f0f0f0;
             font-family: Arial, sans-serif;
+            background: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab);
+            background-size: 400% 400%;
+            animation: gradient 15s ease infinite;
+            height: 100vh;
+            margin: 0;
+            padding: 0;
+        }
+        @keyframes gradient {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
         }
         .weather-container {
             margin-top: 50px;
+            background: rgba(255, 255, 255, 0.8);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
         }
         .forecast-day {
             margin-top: 20px;
+        }
+        .card {
+            background-color: #ffffff;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        .card-title {
+            font-size: 1.25rem;
+            font-weight: bold;
+        }
+        .card-text {
+            font-size: 1rem;
+        }
+        .hidden {
+            display: none;
         }
     </style>
 </head>
 <body>
     <div class="container text-center weather-container">
         <h1>Weather App</h1>
-        <div id="weather-info">
-            <h2 id="city-name">Loading...</h2>
+        <div id="weather-info" aria-live="polite">
+            <h2 id="city-name"><i class="bi bi-geo-alt"></i> Cookeville, Tennessee</h2>
             <div id="current-weather">
-                <p id="temperature"></p>
-                <p id="humidity"></p>
-                <p id="condition"></p>
-                <div id="weather-icon"></div>
+                <p id="current-time"><i class="bi bi-clock"></i> Loading...</p>
+                <p id="current-temp"><i class="bi bi-thermometer-half"></i> Loading...</p>
+                <p id="humidity"><i class="bi bi-droplet"></i> Loading...</p>
+                <!-- Removed the "Unknown" weather condition -->
+                <p id="sunrise"><i class="bi bi-sunrise"></i> Loading...</p>
+                <p id="sunset"><i class="bi bi-sunset"></i> Loading...</p>
+                <p id="uv-index"><i class="bi bi-sun"></i> Loading...</p>
             </div>
             <div id="forecast" class="forecast-day">
-                <h3>7-Day Forecast</h3>
+                <h3><i class="bi bi-calendar-week"></i> 7-Day Forecast</h3>
                 <div id="forecast-details" class="row"></div>
             </div>
         </div>
@@ -42,65 +85,76 @@
     </footer>
 
     <script>
+        // Base URL for the Open Meteo API
         const weatherBaseUrl = "https://api.open-meteo.com/v1/forecast";
 
-        function getWeather() {
-            const latitude = 36.1628;
-            const longitude = -85.5016;
-            const url = `${weatherBaseUrl}?latitude=${latitude}&longitude=${longitude}&current_weather=true&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max&timezone=America%2FChicago&current=relative_humidity_2m`;
+        // Default location for Cookeville, TN
+        const latitude = 36.1628;
+        const longitude = -85.5016;
 
+        // Function to fetch weather data
+        function getWeather() {
+            // API URL with parameters for current weather and 7-day forecast
+            const url = `${weatherBaseUrl}?latitude=${latitude}&longitude=${longitude}&current_weather=true&daily=sunrise,sunset,temperature_2m_max,temperature_2m_min,precipitation_probability_max,weather_code,uv_index_max&hourly=relative_humidity_2m,uv_index&temperature_unit=fahrenheit&timeformat=unixtime&timezone=auto`;
+
+            // Fetch weather data from the API
             fetch(url)
                 .then(response => response.json())
                 .then(data => {
-                    console.log(data); // Log the full API response
-                    displayWeather(data, "Cookeville");
+                    console.log(data); // Log the full API response for debugging
+                    displayWeather(data);
                 })
                 .catch(error => {
-                    console.error(error);
-                    alert("Error fetching weather data.");
+                    console.error(error); // Log any errors
+                    alert("Error fetching weather data."); // Show an error message to the user
                 });
         }
 
-        function getWeatherIcon(weatherCode) {
-            switch (weatherCode) {
-                case 0: return "bi-sun";
-                case 1: return "bi-cloud-sun";
-                case 2: return "bi-cloud";
-                case 3: return "bi-clouds";
-                case 45: case 48: return "bi-cloud-fog";
-                case 51: case 53: case 55: return "bi-cloud-drizzle";
-                case 56: case 57: return "bi-cloud-sleet";
-                case 61: case 63: case 65: return "bi-cloud-rain";
-                case 66: case 67: return "bi-cloud-snow";
-                case 71: case 73: case 75: return "bi-snow";
-                case 77: return "bi-cloud-hail";
-                case 80: case 81: case 82: return "bi-cloud-rain-heavy";
-                case 85: case 86: return "bi-snow";
-                default: return "bi-question-circle";
-            }
-        }
-
-        function displayWeather(data, city) {
+        // Function to display weather data
+        function displayWeather(data) {
+            const currentTime = new Date(); // Get the current time
             const currentWeather = data.current_weather;
+            const hourly = data.hourly;
             const forecast = data.daily;
 
-            document.getElementById("city-name").textContent = `${city}`;
-            document.getElementById("temperature").textContent = `Current Temperature: ${currentWeather.temperature}°F`;
-            document.getElementById("humidity").textContent = `Humidity: ${data.current?.relative_humidity_2m || "N/A"}%`;
-            document.getElementById("condition").textContent = `Conditions: ${currentWeather.weather_code}`;
-            document.getElementById("weather-icon").innerHTML = `<i class="bi ${getWeatherIcon(currentWeather.weather_code)}" style="font-size: 50px;"></i>`;
+            // Display current time
+            document.getElementById("current-time").innerHTML = `<i class="bi bi-clock"></i> Current Time: ${currentTime.toLocaleTimeString()}`;
 
+            // Display current temperature
+            document.getElementById("current-temp").innerHTML = `<i class="bi bi-thermometer-half"></i> Current Temperature: ${currentWeather.temperature}°F`;
+
+            // Display humidity (from hourly data)
+            const currentHumidity = hourly.relative_humidity_2m[0];
+            document.getElementById("humidity").innerHTML = `<i class="bi bi-droplet"></i> Humidity: ${currentHumidity}%`;
+
+            // Display sunrise and sunset
+            const sunrise = new Date(forecast.sunrise[0] * 1000);
+            const sunset = new Date(forecast.sunset[0] * 1000);
+            document.getElementById("sunrise").innerHTML = `<i class="bi bi-sunrise"></i> Sunrise: ${sunrise.toLocaleTimeString()}`;
+            document.getElementById("sunset").innerHTML = `<i class="bi bi-sunset"></i> Sunset: ${sunset.toLocaleTimeString()}`;
+
+            // Display UV Index
+            const uvIndex = hourly.uv_index[0];
+            document.getElementById("uv-index").innerHTML = `<i class="bi bi-sun"></i> UV Index: ${uvIndex}`;
+
+            // Display 7-day forecast
             let forecastHtml = "";
             if (forecast && forecast.time) {
                 for (let i = 0; i < forecast.time.length; i++) {
+                    const date = new Date(forecast.time[i] * 1000).toLocaleDateString();
+                    const maxTemp = forecast.temperature_2m_max[i];
+                    const minTemp = forecast.temperature_2m_min[i];
+                    const rainProbability = forecast.precipitation_probability_max[i];
+                    const weatherCode = forecast.weather_code[i];
                     forecastHtml += `
                         <div class="col-md-4 mb-3">
                             <div class="card">
                                 <div class="card-body">
-                                    <h5 class="card-title">${forecast.time[i]}</h5>
-                                    <p class="card-text">Max Temp: ${forecast.temperature_2m_max[i]}°F</p>
-                                    <p class="card-text">Min Temp: ${forecast.temperature_2m_min[i]}°F</p>
-                                    <p class="card-text">Precipitation Chance: ${forecast.precipitation_probability_max[i]}%</p>
+                                    <h5 class="card-title"><i class="bi bi-calendar-day"></i> ${date}</h5>
+                                    <p class="card-text"><i class="bi ${getWeatherIcon(weatherCode)}"></i> ${getWeatherCondition(weatherCode)}</p>
+                                    <p class="card-text"><i class="bi bi-thermometer-high"></i> Max Temp: ${maxTemp}°F</p>
+                                    <p class="card-text"><i class="bi bi-thermometer-low"></i> Min Temp: ${minTemp}°F</p>
+                                    <p class="card-text"><i class="bi bi-cloud-rain"></i> Rain: ${rainProbability}%</p>
                                 </div>
                             </div>
                         </div>
@@ -113,6 +167,77 @@
             document.getElementById("forecast-details").innerHTML = forecastHtml;
         }
 
+        // Function to map weather codes to Bootstrap Icons
+        function getWeatherIcon(weatherCode) {
+            const weatherIcons = {
+                0: "bi-sun", // Clear sky
+                1: "bi-cloud-sun", // Mainly clear
+                2: "bi-cloud", // Partly cloudy
+                3: "bi-clouds", // Overcast
+                45: "bi-cloud-fog", // Fog
+                48: "bi-cloud-fog", // Depositing rime fog
+                51: "bi-cloud-drizzle", // Light drizzle
+                53: "bi-cloud-drizzle", // Moderate drizzle
+                55: "bi-cloud-drizzle", // Dense drizzle
+                56: "bi-cloud-sleet", // Light freezing drizzle
+                57: "bi-cloud-sleet", // Dense freezing drizzle
+                61: "bi-cloud-rain", // Slight rain
+                63: "bi-cloud-rain", // Moderate rain
+                65: "bi-cloud-rain", // Heavy rain
+                66: "bi-cloud-snow", // Light freezing rain
+                67: "bi-cloud-snow", // Heavy freezing rain
+                71: "bi-snow", // Slight snow fall
+                73: "bi-snow", // Moderate snow fall
+                75: "bi-snow", // Heavy snow fall
+                77: "bi-cloud-hail", // Snow grains
+                80: "bi-cloud-rain-heavy", // Slight rain showers
+                81: "bi-cloud-rain-heavy", // Moderate rain showers
+                82: "bi-cloud-rain-heavy", // Violent rain showers
+                85: "bi-snow", // Slight snow showers
+                86: "bi-snow", // Heavy snow showers
+                95: "bi-cloud-lightning-rain", // Thunderstorm
+                96: "bi-cloud-lightning-rain", // Thunderstorm with slight hail
+                99: "bi-cloud-lightning-rain" // Thunderstorm with heavy hail
+            };
+            return weatherIcons[weatherCode] || "bi-question-circle"; // Default icon for unknown weather codes
+        }
+
+        // Function to map weather codes to human-readable descriptions
+        function getWeatherCondition(weatherCode) {
+            const weatherConditions = {
+                0: "Clear sky",
+                1: "Mainly clear",
+                2: "Partly cloudy",
+                3: "Overcast",
+                45: "Fog",
+                48: "Depositing rime fog",
+                51: "Light drizzle",
+                53: "Moderate drizzle",
+                55: "Dense drizzle",
+                56: "Light freezing drizzle",
+                57: "Dense freezing drizzle",
+                61: "Slight rain",
+                63: "Moderate rain",
+                65: "Heavy rain",
+                66: "Light freezing rain",
+                67: "Heavy freezing rain",
+                71: "Slight snow fall",
+                73: "Moderate snow fall",
+                75: "Heavy snow fall",
+                77: "Snow grains",
+                80: "Slight rain showers",
+                81: "Moderate rain showers",
+                82: "Violent rain showers",
+                85: "Slight snow showers",
+                86: "Heavy snow showers",
+                95: "Thunderstorm",
+                96: "Thunderstorm with slight hail",
+                99: "Thunderstorm with heavy hail"
+            };
+            return weatherConditions[weatherCode] || "Unknown"; // Default description for unknown weather codes
+        }
+
+        // Fetch weather data when the page loads
         getWeather();
     </script>
 </body>
