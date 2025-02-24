@@ -52,7 +52,7 @@
             fetch(url)
                 .then(response => response.json())
                 .then(data => {
-                    console.log(data);
+                    console.log(data); // Log the full API response
                     displayWeather(data, "Cookeville");
                 })
                 .catch(error => {
@@ -86,24 +86,29 @@
 
             document.getElementById("city-name").textContent = `${city}`;
             document.getElementById("temperature").textContent = `Current Temperature: ${currentWeather.temperature}°F`;
-            document.getElementById("humidity").textContent = `Humidity: ${data.current.relative_humidity_2m}%`;
+            document.getElementById("humidity").textContent = `Humidity: ${data.current?.relative_humidity_2m || "N/A"}%`;
             document.getElementById("condition").textContent = `Conditions: ${currentWeather.weather_code}`;
             document.getElementById("weather-icon").innerHTML = `<i class="bi ${getWeatherIcon(currentWeather.weather_code)}" style="font-size: 50px;"></i>`;
 
             let forecastHtml = "";
-            for (let i = 0; i < forecast.time.length; i++) {
-                forecastHtml += `
-                    <div class="col-md-4">
-                        <div class="card">
-                            <div class="card-body">
-                                <h5 class="card-title">${forecast.time[i]}</h5>
-                                <p class="card-text">Max Temp: ${forecast.temperature_2m_max[i]}°F</p>
-                                <p class="card-text">Min Temp: ${forecast.temperature_2m_min[i]}°F</p>
-                                <p class="card-text">Precipitation Chance: ${forecast.precipitation_probability_max[i]}%</p>
+            if (forecast && forecast.time) {
+                for (let i = 0; i < forecast.time.length; i++) {
+                    forecastHtml += `
+                        <div class="col-md-4 mb-3">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h5 class="card-title">${forecast.time[i]}</h5>
+                                    <p class="card-text">Max Temp: ${forecast.temperature_2m_max[i]}°F</p>
+                                    <p class="card-text">Min Temp: ${forecast.temperature_2m_min[i]}°F</p>
+                                    <p class="card-text">Precipitation Chance: ${forecast.precipitation_probability_max[i]}%</p>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                `;
+                    `;
+                }
+            } else {
+                console.error("Forecast data is missing or invalid:", forecast);
+                forecastHtml = "<p>Forecast data not available.</p>";
             }
             document.getElementById("forecast-details").innerHTML = forecastHtml;
         }
