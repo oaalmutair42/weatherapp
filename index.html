@@ -64,7 +64,7 @@
     <div class="container text-center weather-container">
         <h1>Weather App</h1>
         <div id="weather-info" aria-live="polite">
-            <h2 id="city-name"><i class="bi bi-geo-alt"></i> Cookeville, Tennessee</h2>
+            <h2 id="city-name"><i class="bi bi-geo-alt"></i> Cookeville, TN</h2>
             <div id="current-weather">
                 <p id="current-time"><i class="bi bi-clock"></i> Loading...</p>
                 <p id="current-temp"><i class="bi bi-thermometer-half"></i> Loading...</p>
@@ -81,14 +81,14 @@
         </div>
     </div>
     <footer class="text-center mt-5">
-        <p>Weather data courtesy of <a href="https://open-meteo.com/" target="_blank">Open Meteo</a>.</p>
+        <p>Credits to Them <a href="https://open-meteo.com/" target="_blank">Open Meteo</a>.</p>
     </footer>
 
     <script>
         // Base URL for the Open Meteo API
         const weatherBaseUrl = "https://api.open-meteo.com/v1/forecast";
 
-        // Default location for Cookeville, TN
+        // Default location for Cookeville, TN 
         const latitude = 36.1628;
         const longitude = -85.5016;
 
@@ -97,7 +97,7 @@
             // API URL with parameters for current weather and 7-day forecast
             const url = `${weatherBaseUrl}?latitude=${latitude}&longitude=${longitude}&current_weather=true&daily=sunrise,sunset,temperature_2m_max,temperature_2m_min,precipitation_probability_max,weather_code,uv_index_max&hourly=relative_humidity_2m,uv_index&temperature_unit=fahrenheit&timeformat=unixtime&timezone=auto`;
 
-            // Fetch weather data from the API
+            // Testing if it fails fetching from the API 
             fetch(url)
                 .then(response => response.json())
                 .then(data => {
@@ -137,7 +137,7 @@
             const uvIndex = hourly.uv_index[0];
             document.getElementById("uv-index").innerHTML = `<i class="bi bi-sun"></i> UV Index: ${uvIndex}`;
 
-            // Display 7-day forecast
+            // Display 7 days forecast
             let forecastHtml = "";
             if (forecast && forecast.time) {
                 for (let i = 0; i < forecast.time.length; i++) {
@@ -167,7 +167,7 @@
             document.getElementById("forecast-details").innerHTML = forecastHtml;
         }
 
-        // Function to map weather codes to Bootstrap Icons
+        // Function to map weather codes to Bootstrap Icons , I was trying to find another to implement them with one line api but couldn't
         function getWeatherIcon(weatherCode) {
             const weatherIcons = {
                 0: "bi-sun", // Clear sky
